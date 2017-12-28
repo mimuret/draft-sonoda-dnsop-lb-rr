@@ -58,68 +58,90 @@
       <t>
         本文書は「LB」という新しいリソースレコードを定義する。
         LBは、A,AAAAのバランシング機能を別ドメイン名へのリダイレクトと共に提供する。
-        現在のDNSの仕様では、A,AAAA RRはアドレス情報のみを持っており、IPアドレスごとに重み付けをすることは困難である。
-        現在多く行われている手法は、非標準の方法として、Authoritative Server側で、重み付けを考慮して選択した1レコードのみを返す手法である。
-        これは、非標準であるため、ゾーン転送機能によって重み付けをセカンダリサーバへ転送することができない。
+      </t>
+    </section>
+    <section title='Motivation'>
+        現在のDNSの仕様では、A,AAAA RRはアドレス情報のみを持っており、その利用に際しアドレスごとの重み付けをすることは困難である。
+        現在多く行われている手法は、非標準の方法として、Authoritative Server側で、重み付けを考慮して選択した一つのRRを返す手法である。
+        これは、非標準の方法であるため、ゾーン転送機能によって重み付け情報をセカンダリサーバへ転送することができない。
         また、DNSSEC署名の観点からもOnline署名が必要になってくるため、全てのセカンダリサーバで署名鍵を持つ必要がある。
 
+        また、実際のRRを利用するクライアントのネットワーク的な位置により、利用させたいRRを変更したいレコードも存在する。。
+        重み付け同様に、現在のDNSの仕様では、A,AAAAにネットワーク的な位置情報を含めることはできない。
+        現在多く行われている手法は、非標準の方法として、問い合わせを行うクライアントのIPアドレスを元に、Authoritative Server側が
+        A, AAAAレコード応答を変える手法である。
+        A,AAAAとネットワーク的な位置情報のマッピングはゾーン外の機能として実装されている為、セカンダリサーバに転送することができない。
+
+        これらの問題点を解決する為、特殊なレコードとしてLBレコードを定義する。
+        このレコードを使用すれば、DNS Provider実装に依存しないGlobal Load BalancingとLocal Balancingが提供できるようになります。
       </t>
     </section>
 
-    <section title="LoadBalance Resource Record">
+    <section title="The LB Resource Record">
       <t>LBリソースレコードのニーモニックはLBである。</t>
       <t>LBの書式を示す</t>
         <artwork align="left"><![CDATA[
-                <owner> <ttl> <class> LB <rrtype> <weight> <target>
+                <owner> <ttl> <class> LB <rrtype> <weight> <geocode> <target>
             ]]></artwork>
       <t>この書式には、クラスの区別はなく、全てが必須フィールドである。</t>
-      <t>RDATAの各要素は、&lt;rrtype&gt;はTYPE [RFC1035]、&lt;weight&gt;2 octetsの1以上の整数値、&lt;target&gt;は &lt;domain-name&gt; [RFC1035]である。</t>
-      <t>&lt;rrtype&gt;として、指定できるのは、A・AAAAである。</t>
+      <t>RDATAの各要素は、以下の通り</t>
+      <list>
+        <t>&lt;rrtype&gt; field is a two octets, A or AAAA RRType.</t>
+        <t>&lt;weight&gt; field is a 2 octets, 1 or more natural number.</t>
+        <t>&lt;geocode&gt; field is a 2 octets, natural number ISO 3166-1 alpha-2 Country code
+           or Continental code that AF,AN,AS,EU,NA,OC and SA
+           or "0" meen all countries.</t>
+        <t>&lt;target&gt; field is a &lt;domain-name&gt; [RFC1035]</t>
+      </list>
     </section>
-    <section title="EDNS LB Support">
-                <t>Full resolverが、権威DNSに対して、LBをサポートしている事を伝える為、EDNS LB Supportを定義する（ELS)</t>
-        <t>ERS Format</t>
-        <artwork align="left"><![CDATA[
-                +0 (MSB)                            +1 (LSB)
-      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-   0: |                          OPTION-CODE                          |
-      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-   2: |                         OPTION-LENGTH = 0                     |
-      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
-
-                ]]></artwork>
-                <t>OPTION-CODE, 2 octets</t>
-                <t>OPTION-CODE, 2 octets, need 0</t>
+    <section title="The LB Support Flag">
+      <t>Full resolverが、権威DNSに対して、LBをサポートしている事を伝える為、EDNS Header Flagsとして、LB Supportを定義する（LS)</t>
     </section>
 
     <section title="Authoritative Server Behavior">
-      <t>Authoritative Serverに問い合わせたクエリーの中にELSが含まれている場合に以下の特別の動作を行う。</t>
-      <t>qnameが一致するLBが存在し、qtype = rrtype である LB が存在する場合は、ANSWER SECTIONとして、LB RRSETを追加する。
-         この際、そのLBのtarget、rrtypeが一致するRRがある場合でも、ANSWER SECTIONに追加してはならない。
+      <t>Authoritative Serverに問い合わせたクエリーの中にLSが含まれている場合に以下の特別の動作を行う。</t>
+      <t>qnameが一致するLBが存在し、qtype = &lt;rrtype&gt;であるLBが存在する場合は、ANSWER SECTIONとして、LB RRSETを追加する。
+         この際、そのLBの&lt;target&gt;、&lt;rrtype&gt;が一致するRRがある場合でも、ANSWER SECTIONに追加してはならない。
          また、qname、qtypeに一致するRRがある場合もANSWER SECTIONに追加してはならない。
          DNSSEC署名がされている場合は、LBに対するRRSIGを返す
       </t>
+      <t>Authoritative Server側で、ゾーン情報の変更、RRSETの一部応答などは行わない為、DNSSEC署名をセカンダリサーバで行う必要はない。</t>
     </section>
 
     <section title="Full Service Resolver Behavior">
-      <t>1. スタブリゾルバからA,AAAAのクエリーを受け取る</t>
-      <t>2. ResolverがLB RRに対応している場合、クエリーにELSを付加して問い合わせを行う。</t>
-      <t>3. qtype=A,AAAAのレスポンスとして、ANSWER SECTIONにLB RRSetが含まれている場合特別の動作を行う。</t>
-      <t>4. DNSSEC署名されている場合は、LB RRSetに対して、署名検証を行う。失敗（Bogus)の場合はスタブリゾルバにSERVFAILを返し処理を終了する。</t>
-      <t>5. LB RRSetから、qtype = rrtypeであるLB RRを選択する。</t>
-      <t>6. qtype = rrtypeであるLB RRが複数ある場合は、weightに従って、レスポンスとして返すtargetを選択する。weightは値が大きい方が優先で、比率によって、選択するtargetを変化させるのを期待する。</t>
-      <t>7. 選択したtargetをqname、rrtypeをqtypeとして、”名前解決”する。名前解決の結果、qtypeが一致するRRSetが得られない場合、5に戻って別のtargetを選択する。全てのtargetで失敗した場合は8に飛ぶ。</t>
-      <t>8. ターゲットを名前解決した結果を署名検証する。失敗（Bogus)の場合は、5に戻って別のtargetを選択する。全てのtargetで失敗した場合は8に飛ぶ。</t>
-      <t>9. スタブリゾルバの応答として、LB RRsetをANSWER SECTIONに追加する。ターゲットを名前解決の結果、qtypeが一致するRRが得らた場合は、その名前解決の結果をANSWER SECTIONに追加する。
-      　　　 また、LB RRSETとターゲットが共に署名検証に成功していればAD BITを付ける。</t>
+        <list style="numbers">
+          <t>スタブリゾルバからA,AAAAのクエリーを受け取る</t>
+          <t>ResolverがLB RRに対応している場合、クエリーにLSを付加して問い合わせを行う。</t>
+          <t>qtype=A,AAAAのレスポンスとして、ANSWER SECTIONにLB RRSetが含まれている場合特別の動作を行う。</t>
+          <t>DNSSEC署名されている場合は、LB RRSetに対して、署名検証を行う。失敗（Bogus)の場合はスタブリゾルバに
+             SERVFAILを返し処理を終了する。</t>
+          <t>LB RRSetから、qtype = &lt;rrtype&gt;であるLB RRを選択する。</t>
+          <t>&lt;geocode&gt;が0でない場合は、&lt;geocode&gt;を使用して、さらにLB RRを絞り込む。
+          <t>（実装依存だが、リゾルバ自身に設定された、ネットワーク的な位置情報で絞り込むことを想定、またスタブリゾルバのIPをGeoIP Databaseを用いて位置情報を割り出し
+            それに基づいて絞り込むことも可能）</t>
+          </t>
+          <t>qtype = &lt;rrtype&gt;であるLB RRが複数ある場合は、&lt;weight&gt;に従って、レスポンスとして返す&lt;target&gt;を選択する。
+             &lt;weight&gt;は値が大きい方が優先で、比率によって、選択する&lt;target&gt;を変化させるのを期待する。</t>
+          <t>選択した&lt;target&gt;をqname、&lt;rrtype&gt;をqtypeとして、”名前解決”する。名前解決の結果、qtypeが一致するRRSetが
+             得られない場合、5に戻って別の&lt;target&gt;を選択する。全ての&lt;target&gt;で失敗した場合は8に飛ぶ。</t>
+          <t>ターゲットを名前解決した結果を署名検証する。失敗（Bogus)の場合は、5に戻って別の&lt;target&gt;を選択する。
+             全ての&lt;target&gt;で失敗した場合は8に飛ぶ。</t>
+          <t>スタブリゾルバの応答として、LB RRsetをANSWER SECTIONに追加する。ターゲットを名前解決の結果、
+             qtypeが一致するRRが得らた場合は、その名前解決の結果をANSWER SECTIONに追加する。また、LB RRSETと
+            ターゲットが共に署名検証に成功していればAD BITを付ける。</t>
+        </list>
     </section>
 
     <section title="IANA Considerations">
-      <t>   IANA is requested to assign a DNS RR data type value for the LB RR type under the "Resource Record (RR) TYPEs" subregistry under the "Domain Name System (DNS) Parameters" registry.</t>
+      <t>IANA is requested to assign a DNS RR data type value for the LB RR type under 
+         the "Resource Record (RR) TYPEs" subregistry and
+         a EDNS Header Flag value fro the LB Support Flag under 
+         the "EDNS Header Flags (16 bits)" subregistry
+         under the "Domain Name System (DNS) Parameters" registry.</t>
     </section>
 
     <section title="Security Considerations">
-      <t>リゾルバでは、LBのtargetのレスポンスとして、LB,CNAME,DNAMEが返ってくることもある。その場合、多段で名前解決を行うことになるため、limitを描けるなどloopしないように注意する必要がある。</t>
+      <t>リゾルバでは、LBの&lt;target&gt;のレスポンスとして、LB,CNAME,DNAMEが返ってくることもある。その場合、多段で名前解決を行うことになるため、limitを描けるなどloopしないように注意する必要がある。</t>
     </section>
 
   </middle>
