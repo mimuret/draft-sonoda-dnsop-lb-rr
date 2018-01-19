@@ -11,7 +11,7 @@
 
 <rfc category="info" docName="draft-sonoda-lb-rr-00">
   <front>
-    <title abbrev="Abbreviated Title">DNS load balance</title>
+    <title abbrev="Abbreviated Title">DNS load balancing</title>
 
     <author fullname="Manabu Sonoda" role="editor" surname="Sonoda">
       <organization>Internet Initiative Japan Inc.</organization>
@@ -29,7 +29,7 @@
     <workgroup>Domain Name System Operations</workgroup>
     <keyword>DNS</keyword>
     <abstract>
-      <t>This document defines a new DNS base load balance function.</t>
+      <t>This document defines a new DNS base load balancing function.</t>
     </abstract>
   </front>
 
@@ -37,89 +37,121 @@
     <section title="Introduction and Background">
       <t> This document defines a new DNS load balance function that is able to transfer information in zone transfer and not need online signing.</t>
       <t>DNS base load balance is popluer technology. It provides weight base response and location base response.
-      It have become an indispensable part of traffic engineering.
-      </t>
+      It have become an indispensable part of traffic engineering.</t>
       <t>However, DNS base load balance can't transfer load balance information in zone transfer and need online sigining because it is not standardized.</t>
-
       <t> This document defines a new DNS resource record called "LB" and new EDNS option bit called "LS".
-        LB RR provides the balancing function for A and AAAA Recourds indirectly.
+        LB RR provides the balancing information wieght, location and target domain name.
         LS bit provides the change response mechanism in name servers.</t>
+    </section>
+    <section title="Mechanism">
+      <t>1. Stub resolver sends A or AAAA query to full resolver.</t> 
+      <t>2. Full Resolver sends A or AAAA query with LS bit to authoritative server.</t>
+      <t>3. Authoritative Server responses LB RRset.</t>
+      <t>4. Full Resolver selects target domaoin name using location information and weight information.</t>
+      <t>5. Full Resolver resolv target domaoin name.</t>
+      <t>6. Full Resolver response target domaoin name and LB RRSet to stub resolver.</t>
     </section>
 
     <section title="The LB Resource Record">
-      <t>The LB RR has mnemonic LB. LB RR define load balance information.</t>
+      <t>The LB RR has mnemonic LB. LB RR define load balancing information.</t>
       <t>LB format below.</t>
       <figure><artwork><![CDATA[
       <owner> <ttl> <class> LB <weight> <location> <target>
             ]]></artwork></figure>
-      <t>The format is not class-sensitive.  All fields are required. 。</t>
+      <t>The format is not class-sensitive.  All fields are required.</t>
       <t>&lt;weight&gt; field is a 2 octets, 1 or more natural number.</t>
-      <t>&lt;location&gt; field is a &lt;character-string&gt;  <xref target="RFC1035"/></t>. &lt;location&gt; field has 4 types.</t>
-      <t>1. ISO 3166-2 Codes for the representation of names of countries and their subdivisions.</t>
-      <t>2. ISO 3166-1 alpha-2 Country code</t>
-      <t>3. Continental code that AF,AN,AS,EU,NA,OC and SA</t> 
-      <t>4. "*" meen any region.</t>
-      <t>&lt;target&gt; field is a &lt;domain-name&gt; <xref target="RFC1035"/>. &lt;target&gt; name has A or AAAA RR or CNAME RR or DNAME RR.</t>
-      <t>Record example:</t>
+      <t>&lt;location&gt; field is a "&lt;character-string&gt;""  <xref target="RFC1035"/>.</t>
+      <t>&lt;target&gt; field is a "&lt;domain-name&gt;"" <xref target="RFC1035"/>. It has A or AAAA RR or CNAME RR or DNAME RR.</t>
+      <section title='Define location'>
+        <t>&lt;location&gt; ::= "*" | &lt;continental code&gt; | &lt;country code&gt; | &lt;subdivision code&gt; | &lt;asn code&gt; | &lt;private code&gt;</t>
+        <t>&lt;continental code&gt; ::= "AF" | "AN" | "AS" | "EU" | "NA" | "OC" | "SA"</t>
+        <t>&lt;country code&gt; ::= ISO 3166-1 alpha-2 Country code.</t>
+        <t>&lt;subdivision code&gt; ::= ISO 3166-2 Codes for the representation of names of countries and their subdivisions.</t>
+        <t>&lt;asn code&gt; ::= "AS" &lt;asn&gt; [  ":" &lt;asn&gt;]</t>
+        <t>&lt;private code&gt; ::= "+" &lt;let&gt;</t>
+        <t>&lt;ans&gt; ::=  &lt;nonzero digit&gt; &lt;digit&gt;</t>
+        <t>&lt;nonzero digit&gt; ::= any one of the ten digits 1 through 9</t>
+        <t>&lt;digit&gt; ::= any one of the ten digits 0 through 9</t>
+        <t>&lt;let&gt; ::= any one of the 26 alphabetic characters A through Z in upper case or any one of the ten digits 0 through 9.</t>
+      </section>
+      <section title='Record example'>
       <figure><artwork><![CDATA[
-      example.jp. 3600 IN LB 1 * www.example.com. ; for any region.
-      example.jp. 3600 IN LB 1 AP ap.example.com. ; for AP region.
-      example.jp. 3600 IN LB 1 JP jp1.example.jp. ; for JP region, weight 1.
-      example.jp. 3600 IN LB 3 JP jp2.example.jp. ; for JP region, weight 3.
-      example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. ; for tokyo region. (JP-13 is tokyo region ISO 3166-2:JP)
-      ]]></artwork></figure>      
+; for any region.
+example.jp. 3600 IN LB 1 * www.example.com.
+; for AP region.
+example.jp. 3600 IN LB 1 AP ap.example.com.
+; for JP region, weight 1.
+example.jp. 3600 IN LB 1 JP jp1.example.jp.
+; for JP region, weight 3.
+example.jp. 3600 IN LB 3 JP jp2.example.jp.
+; for tokyo region. (JP-13 is tokyo region ISO 3166-2:JP)
+example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. 
+; for AS2497
+example.jp. 3600 IN LB 1 AS2496 as2497.example.jp.
+; for AS2497
+example.jp. 3600 IN LB 1 AS2496:1 as2497.example.jp. 
+; private use
+example.jp. 3600 IN LB 1 +BEER beer.example.jp.
+      ]]></artwork></figure>
+      </section>
     </section>
 
     <section title="The LB Support Flag">
-      <t>Defines a new EDNS Header Flags <xref target='RFC6891' /> call LB Support Flag(LS) using full resolver sends LB RR supported to authoritative server.</t>
+      <t>Defines a new ”EDNS Header Flags” <xref target='RFC6891' /> call LB Support Flag(LS) using full resolver sends LB RR supported to authoritative server.</t>
       <t>LS bit provides change response mechanism in authoritative name server. If LS bit is flagged, Authoritative name server can response LB RR for A,AAAA query.</t>
     </section>
 
     <section title="Authoritative name server Behavior">
-      <t>1. If request query on EDNS Header LS bit then Authoritative name server special action before 4.3.2 3.a. <xref target='RFC1034' /> </t>
+      <t>1. If request query on EDNS Header LS bit then Authoritative name server special action before "4.3.2 3.a."" <xref target='RFC1034' /> </t>
       <t>2. If QTYPE is A or B and a match between QNAME and LB RRset node name then 
-         copy all LB RRSet into the answer section and go to step 6 <xref target='RFC1034' /> . else go to step 4.2.3 3.a. </t>
+         copy all LB RRSet into the answer section and go to step "4.3.2 6" <xref target='RFC1034' /> . else go to step "4.2.3 3.a" <xref target='RFC1034' />. </t>
       <t>3. If request query on EDNS Header LS bit then Authoritative name server SHOULD flagge LS bit in reply message.</t>
       <section title="Example of authoritative name server behavior">
         <t>Example zone data:</t>
         <figure><artwork><![CDATA[
-    example.jp. 3600 IN SOA ns1.example.com. postmaster.example.com. 100 3600 900 1814400 900
-    example.jp. 3600 IN NS ns1.example.com.
-    example.jp. 3600 IN NS ns2.example.com.
-    example.jp. 3600 IN A 198.51.100.1
-    example.jp. 3600 IN LB 1 * www.example.com.
-    example.jp. 3600 IN LB 1 JP jp1.example.com.
-    example.jp. 3600 IN LB 3 JP jp2.example.com.
+example.jp. 3600 IN SOA ( ns1.example.com.
+                          postmaster.example.com.
+                          1
+                          3600
+                          900
+                          1814400
+                          900 )
+example.jp. 3600 IN NS ns1.example.com.
+example.jp. 3600 IN NS ns2.example.com.
+example.jp. 3600 IN A 198.51.100.1
+example.jp. 3600 IN LB 1 * www.example.com.
+example.jp. 3600 IN LB 1 JP jp1.example.com.
+example.jp. 3600 IN LB 3 JP jp2.example.com.
               ]]></artwork></figure>
         <t>Incomming query with LS bit:</t>
         <figure><artwork><![CDATA[
-    query: qtype = example.jp. qtype=A, LS=1
+query: qtype = example.jp. qtype=A, LS=1
       ]]></artwork></figure>
         <t>Response for include LS:</t>
         <figure><artwork><![CDATA[
-    query: qtype = example.jp. qtype=A
-    response: LS=1
-      answer:
-        example.jp. 3600 IN LB 1 * www.example.com.
-        example.jp. 3600 IN LB 1 JP jp1.example.com.
-        example.jp. 3600 IN LB 3 JP jp2.example.com.
-      authority:
-        example.jp. 3600 IN NS ns1.example.com.
-        example.jp. 3600 IN NS ns2.example.com.
+query: qtype = example.jp. qtype=A
+response: LS=1
+  answer:
+    example.jp. 3600 IN LB 1 * www.example.com.
+    example.jp. 3600 IN LB 1 JP jp1.example.com.
+    example.jp. 3600 IN LB 3 JP jp2.example.com.
+  authority:
+    example.jp. 3600 IN NS ns1.example.com.
+    example.jp. 3600 IN NS ns2.example.com.
       ]]></artwork></figure>
         <t>Incomming query without LS bit (normal query):</t>
         <figure><artwork><![CDATA[
-    query: qtype = example.jp. qtype=A, LS=0
+query: qtype = example.jp. qtype=A, LS=0
       ]]></artwork></figure>
         <t>Response for not include LS:</t>
         <figure><artwork><![CDATA[
-    query: qtype = example.jp. qtype=A
-    response:  LS=0
-      answer:
-            example.jp. 3600 IN A 198.51.100.1
-      authority:
-            example.jp. 3600 IN NS ns1.example.com.
-            example.jp. 3600 IN NS ns2.example.com.
+query: qtype = example.jp. qtype=A
+response:  LS=0
+  answer:
+        example.jp. 3600 IN A 198.51.100.1
+  authority:
+        example.jp. 3600 IN NS ns1.example.com.
+        example.jp. 3600 IN NS ns2.example.com.
               ]]></artwork></figure>
       </section>
     </section>
@@ -127,13 +159,15 @@
 
     <section title="Full Service Resolver Behavior">
       <t>1. If Full resolver support LB RR, Full resolver send query to Authoritative Server with LS BIT.</t>
-      <t>2. If the responses shows a LB and that is now the answer itself, goto step 2.1 before 5.3.3 4<xref target='RFC1034' /> else step 5.3.3 4<xref target='RFC1034'</t>
+      <t>2. If the responses shows a LB and that is now the answer itself, goto step 2.1 before "5.3.3 4" <xref target='RFC1034' /> else goto step "5.3.3 4" <xref target='RFC1034' /></t>
       <t>3. Select the target name from LB RR using weight and location.</t>
       <t>3.1. First step, Exclude RR that's same value OWNER and target name.</t>
-      <t>3.2. Second step is location selection. location Selection needs location information. Full Resolver default location is '*'. Location Information SHOULD gets from full resolver config. MAY resolv location using stub resolver IP and GeoIP database.
-             The width of location decreases in order of　ANY,　Continental code, Country code. MUST select small area.
-             If RRSet not include RR that's  location is '*', Mayby can't select RR code. The case, Resolver stop algorithm and return response or Resolver MAY requery without LS bit.
-      <t>3.3. Third step is weight selection.  </t>
+      <t>3.2. Second step is location selection. location Selection needs location information.
+              Full Resolver default location is '*'. Location Information SHOULD gets from full resolver config.
+              MAY resolv location using stub resolver IP and GeoIP database.
+              The width of location decreases in order of ANY, code, Country code. MUST select small area.
+              If RRSet not include RR that's  location is '*', If can't select RR code. Resolver MUST requery without LS bit.</t>
+      <t>3.3. Third step is weight selection.</t>
       <t>A Selection result MAY be cached.</t>
       <section title="Example of Full Service Resolver Behavior">
         <t>1. Full resolver's location is configured "JP-13 JP AS *".</t>
@@ -196,13 +230,12 @@
     <section title="IANA Considerations">
       <t>IANA is requested to assign a DNS RR data type value for the LB RR type under 
          the "Resource Record (RR) TYPEs" subregistry and
-         a EDNS Header Flag value fro the LB Support Flag under 
+         a EDNS Header Flag value for the LB Support Flag under 
          the "EDNS Header Flags (16 bits)" subregistry
          under the "Domain Name System (DNS) Parameters" registry.</t>
     </section>
 
     <section title="Security Considerations">
-      <t>リゾルバでは、LBの&lt;target&gt;のレスポンスとして、LB,CNAME,DNAMEが返ってくることもある。その場合、多段で名前解決を行うことになるため、limitを描けるなどloopしないように注意する必要がある。</t>
     </section>
 
   </middle>
