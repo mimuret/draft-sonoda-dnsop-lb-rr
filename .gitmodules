@@ -1,3 +1,9 @@
 [submodule "ldns-with-ls"]
 	path = ldns-with-ls
 	url = https://github.com/mimuret/ldns-with-ls
+[submodule "nsd-with-ls"]
+	path = nsd-with-ls
+	url = https://github.com/mimuret/nsd-with-ls
+[submodule "knot-with-ls"]
+	path = knot-with-ls
+	url = https://github.com/mimuret/knot-with-ls
