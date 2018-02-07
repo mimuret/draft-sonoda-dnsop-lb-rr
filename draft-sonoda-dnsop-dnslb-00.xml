@@ -9,7 +9,7 @@
 <!ENTITY nbsp    "&#160;">
 ]>
 
-<rfc category="info" docName="draft-sonoda-lb-rr-00">
+<rfc category="info" docName="draft-sonoda-dnslb-00">
   <front>
     <title abbrev="Abbreviated Title">DNS load balancing</title>
 
@@ -236,6 +236,7 @@ response:  LS=0
     </section>
 
     <section title="Security Considerations">
+      
     </section>
 
   </middle>
