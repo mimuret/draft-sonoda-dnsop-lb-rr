@@ -85,7 +85,7 @@
       <t>&lt;weight&gt; field is a 2 octets, 1 or more natural number.</t>
       <t>&lt;location&gt; field is a "&lt;character-string&gt;"  <xref target="RFC1035"/>.</t>
       <t>&lt;target&gt; field is a "&lt;domain-name&gt;" <xref target="RFC1035"/>. It has A or AAAA RR or CNAME RR or DNAME RR.</t>
-f      <section title='Define location'>
+      <section title='Define location'>
         <t>&lt;location&gt; ::= "*" | &lt;continental code&gt; | &lt;country code&gt; | &lt;subdivision code&gt; | &lt;asn code&gt; | &lt;private code&gt;</t>
         <t>&lt;continental code&gt; ::= "AF" | "AN" | "AS" | "EU" | "NA" | "OC" | "SA"</t>
         <t>&lt;country code&gt; ::= ISO 3166-1 alpha-2 Country code.</t>
