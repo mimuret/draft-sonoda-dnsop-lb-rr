@@ -9,7 +9,7 @@
 <!ENTITY nbsp    "&#160;">
 ]>
 
-<rfc category="info" docName="draft-sonoda-dnslb-00">
+<rfc category="info" docName="draft-sonoda-dnsop-dnslb-00">
   <front>
     <title abbrev="Abbreviated Title">DNS load balancing</title>
 
@@ -60,8 +60,8 @@
             ]]></artwork></figure>
       <t>The format is not class-sensitive.  All fields are required.</t>
       <t>&lt;weight&gt; field is a 2 octets, 1 or more natural number.</t>
-      <t>&lt;location&gt; field is a "&lt;character-string&gt;""  <xref target="RFC1035"/>.</t>
-      <t>&lt;target&gt; field is a "&lt;domain-name&gt;"" <xref target="RFC1035"/>. It has A or AAAA RR or CNAME RR or DNAME RR.</t>
+      <t>&lt;location&gt; field is a "&lt;character-string&gt;"  <xref target="RFC1035"/>.</t>
+      <t>&lt;target&gt; field is a "&lt;domain-name&gt;" <xref target="RFC1035"/>. It has A or AAAA RR or CNAME RR or DNAME RR.</t>
       <section title='Define location'>
         <t>&lt;location&gt; ::= "*" | &lt;continental code&gt; | &lt;country code&gt; | &lt;subdivision code&gt; | &lt;asn code&gt; | &lt;private code&gt;</t>
         <t>&lt;continental code&gt; ::= "AF" | "AN" | "AS" | "EU" | "NA" | "OC" | "SA"</t>
@@ -102,10 +102,9 @@ example.jp. 3600 IN LB 1 +BEER beer.example.jp.
     </section>
 
     <section title="Authoritative name server Behavior">
-      <t>1. If request query on EDNS Header LS bit then Authoritative name server special action before "4.3.2 3.a."" <xref target='RFC1034' /> </t>
-      <t>2. If QTYPE is A or B and a match between QNAME and LB RRset node name then 
-         copy all LB RRSet into the answer section and go to step "4.3.2 6" <xref target='RFC1034' /> . else go to step "4.2.3 3.a" <xref target='RFC1034' />. </t>
-      <t>3. If request query on EDNS Header LS bit then Authoritative name server SHOULD flagge LS bit in reply message.</t>
+      <t>When authoritative name server receives a query of type A or AAAA with LS bit and LB record is present at a sname,
+        The authoritative server returns the LB RRSet in the answer section with LS bit.
+      </t>
       <section title="Example of authoritative name server behavior">
         <t>Example zone data:</t>
         <figure><artwork><![CDATA[
@@ -158,19 +157,24 @@ response:  LS=0
 
 
     <section title="Full Service Resolver Behavior">
-      <t>1. If Full resolver support LB RR, Full resolver send query to Authoritative Server with LS BIT.</t>
-      <t>2. If the responses shows a LB and that is now the answer itself, goto step 2.1 before "5.3.3 4" <xref target='RFC1034' /> else goto step "5.3.3 4" <xref target='RFC1034' /></t>
-      <t>3. Select the target name from LB RR using weight and location.</t>
-      <t>3.1. First step, Exclude RR that's same value OWNER and target name.</t>
-      <t>3.2. Second step is location selection. location Selection needs location information.
-              Full Resolver default location is '*'. Location Information SHOULD gets from full resolver config.
-              MAY resolv location using stub resolver IP and GeoIP database.
-              The width of location decreases in order of ANY, code, Country code. MUST select small area.
-              If RRSet not include RR that's  location is '*', If can't select RR code. Resolver MUST requery without LS bit.</t>
-      <t>3.3. Third step is weight selection.</t>
-      <t>A Selection result MAY be cached.</t>
-      <section title="Example of Full Service Resolver Behavior">
-        <t>1. Full resolver's location is configured "JP-13 JP AS *".</t>
+      <t>When a full resulver sends a query of type A or AAAA with LS bit 
+      and recives a response with a LB RRset in the answer section with LS bit,
+      Full resolver MUST re-resolv the either LB &lt;target&gt; of type "STYPE" <xref target="RFC1034"/>.
+      &lt;target&gt; be selected by &lt;location&gt; and &lt;weight&gt;.
+      </t>
+      <section title="Location selection">
+      <t>Location selection needs full resolver or stub resolver location information.
+      Full resolver location informations with priority value SHOULD gets from config file.      
+      Full resolver MUST setting '*' location with lowest priority.
+      Full resolver select location that match either LB RR &lt;location&gt; and highest priority resolver location.
+      if all LB RRs don't matche all resolver locations, resolver selects a location randomly.
+      </t>
+      </section>
+      <section title="Weight selection">
+      <t>Full resolver selects &lt;target&gt; using &lt;weight&gt; from LB RR whose location matches.</t>
+      </section>
+      <section title="Example">
+        <t>1. Full resolver's location is configured "JP-13" "JP" "AS" "*".</t>
         <t>2. Stub resolver query comming:</t>
         <figure><artwork><![CDATA[
     query: qtype = example.jp. qtype=A
@@ -179,7 +183,7 @@ response:  LS=0
         <figure><artwork><![CDATA[
     query: qtype = example.jp. qtype=A, LS=1
               ]]></artwork></figure>
-        <t>3. If response include LB:</t>
+        <t>3. If response include LB RRSets:</t>
         <figure><artwork><![CDATA[
     query: qtype = example.jp. qtype=A
     response: LS=1
@@ -191,12 +195,12 @@ response:  LS=0
             example.jp. 3600 IN NS ns1.example.com.
             example.jp. 3600 IN NS ns2.example.com.
               ]]></artwork></figure>
-        <t>4. select LB RR that's location include resolver location</t>
+        <t>4. select LB RR that's location include resolver location:</t>
         <figure><artwork><![CDATA[
             example.jp. 3600 IN LB 1 JP jp1.example.com.
             example.jp. 3600 IN LB 3 JP jp2.example.com.
               ]]></artwork></figure>
-        <t>5. Select one LB RR using &lt;weight&gt;:</t>
+        <t>5. Select one &lt;target&gt; using &lt;weight&gt;:</t>
         <figure><artwork><![CDATA[
             example.jp. 3600 IN LB 3 JP jp2.example.com.
               ]]></artwork></figure>
@@ -236,7 +240,7 @@ response:  LS=0
     </section>
 
     <section title="Security Considerations">
-      
+      <t>Both authoritative server and resolvers that implement LB SHOUD carefully check for loops.</t>
     </section>
 
   </middle>

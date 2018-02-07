@@ -4,16 +4,26 @@
 
 Domain Name System Operations                                Sonoda, Ed.
 Internet-Draft                            Internet Initiative Japan Inc.
-Intended status: Informational                              January 2018
-Expires: July 5, 2018
+Intended status: Informational                         February 06, 2018
+Expires: August 10, 2018
 
 
                            DNS load balancing
-                      draft-sonoda-dnsop-dnslb-00
+                      draft-sonoda-dnsop-dnslb-01
 
 Abstract
 
-   This document defines a new DNS base load balancing function.
+   This document defines a new DNS load balance function that is able to
+   transfer information in zone transfer and not need online signing.
+   DNS base load balance is popular technology.  It provides weight base
+   response and location base response.  It have become an indispensable
+   part of traffic engineering.  However, DNS base load balance can't
+   transfer load balance information in zone transfer and need online
+   singing because it is not standardized.  This document defines a new
+   DNS resource record called "LB" and new EDNS option bit called "LS".
+   LB RR provides the balancing information weight, location and target
+   domain name.  LS bit provides the change response mechanism in name
+   servers.
 
 Status of This Memo
 
@@ -30,7 +40,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 5, 2018.
+   This Internet-Draft will expire on August 10, 2018.
 
 Copyright Notice
 
@@ -40,6 +50,14 @@ Copyright Notice
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
    (http://trustee.ietf.org/license-info) in effect on the date of
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 1]
+
+Internet-Draft              Abbreviated Title              February 2018
+
+
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
@@ -47,34 +65,39 @@ Copyright Notice
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
 
+1.  Introduction
 
+1.1.  Legacy DNS load balancing
 
+   Legacy DNS load balancing provides traffic engineering.It use special
+   authoritative name server.  It response is one address record that is
+   dynamic changes using network location and weight.  It's used for
+   large traffic WEB site domain name that is important domain name.
+   Important domain name should be secure.
 
+   But legacy DNS load balancing is not secure.  Because Legacy DNS load
+   balancing can't send zone data by zone transfer.  It's mean very
+   difficult to use multi service providers.  That means weak for DDoS
+   Attack.  If zone is signed, All name servers require private key for
+   dynamic signing because response is dynamic changes.  Distributing
+   private key is not secure, It is increased risk of leakage private
+   key.
 
+1.2.  New DNS load balancing
 
+   New DNS load balancing concept is that Authoritative name server uses
+   "LB" RR to provide load balancing and Full resolver use "LB" RR to
+   select target name and respond with the target name.
 
-Sonoda                    Expires July 5, 2018                  [Page 1]
-
-Internet-Draft              Abbreviated Title               January 2018
-
-
-1.  Introduction and Background
-
-   This document defines a new DNS load balance function that is able to
-   transfer information in zone transfer and not need online signing.
-
-   DNS base load balance is popluer technology.  It provides weight base
-   response and location base response.  It have become an indispensable
-   part of traffic engineering.
-
-   However, DNS base load balance can't transfer load balance
-   information in zone transfer and need online sigining because it is
-   not standardized.
-
-   This document defines a new DNS resource record called "LB" and new
-   EDNS option bit called "LS".  LB RR provides the balancing
-   information wieght, location and target domain name.  LS bit provides
-   the change response mechanism in name servers.
+   "LB" RR defines load balancing settings that is network location and
+   weight and target domain name.  Network location is string that
+   meaningful name of network.  For example Country code (ex.
+   JP),subdivision code(ex.  US-CA) and Autonomous System Number (ex.
+   AS65536).  Full resolver use resolver configuration to select network
+   location and refine "LB" RRs.  Weight is integer value.  Full
+   resolver use weight ratio to select target name.  Target name is
+   pointer to address record.  It is same "ANAME"
+   [I-D.ietf-dnsop-aname].
 
 2.  Mechanism
 
@@ -83,14 +106,22 @@ Internet-Draft              Abbreviated Title               January 2018
    2.  Full Resolver sends A or AAAA query with LS bit to authoritative
    server.
 
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 2]
+
+Internet-Draft              Abbreviated Title              February 2018
+
+
    3.  Authoritative Server responses LB RRset.
 
-   4.  Full Resolver selects target domaoin name using location
-   information and weight information.
+   4.  Full Resolver selects target domain name using location and
+   weight.
 
-   5.  Full Resolver resolv target domaoin name.
+   5.  Full Resolver resolv target domain name.
 
-   6.  Full Resolver response target domaoin name and LB RRSet to stub
+   6.  Full Resolver response target domain name and LB RRSet to stub
    resolver.
 
 3.  The LB Resource Record
@@ -106,13 +137,6 @@ Internet-Draft              Abbreviated Title               January 2018
    <weight> field is a 2 octets, 1 or more natural number.
 
    <location> field is a "<character-string>" [RFC1035].
-
-
-
-Sonoda                    Expires July 5, 2018                  [Page 2]
-
-Internet-Draft              Abbreviated Title               January 2018
-
 
    <target> field is a "<domain-name>" [RFC1035].  It has A or AAAA RR
    or CNAME RR or DNAME RR.
@@ -139,6 +163,13 @@ Internet-Draft              Abbreviated Title               January 2018
 
    <digit> ::= any one of the ten digits 0 through 9
 
+
+
+Sonoda                   Expires August 10, 2018                [Page 3]
+
+Internet-Draft              Abbreviated Title              February 2018
+
+
    <let> ::= any one of the 26 alphabetic characters A through Z in
    upper case or any one of the ten digits 0 through 9.
 
@@ -161,15 +192,6 @@ Internet-Draft              Abbreviated Title               January 2018
    ; private use
    example.jp. 3600 IN LB 1 +BEER beer.example.jp.
 
-
-
-
-
-Sonoda                    Expires July 5, 2018                  [Page 3]
-
-Internet-Draft              Abbreviated Title               January 2018
-
-
 4.  The LB Support Flag
 
    Defines a new "EDNS Header Flags" [RFC6891] call LB Support Flag(LS)
@@ -182,12 +204,27 @@ Internet-Draft              Abbreviated Title               January 2018
 5.  Authoritative name server Behavior
 
    When authoritative name server receives a query of type A or AAAA
-   with LS bit and LB record is present at a sname, The authoritative
+   with LS bit and LB record is present at a SNAME, The authoritative
    server returns the LB RRSet in the answer section with LS bit.
 
 5.1.  Example of authoritative name server behavior
 
    Example zone data:
+
+
+
+
+
+
+
+
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 4]
+
+Internet-Draft              Abbreviated Title              February 2018
+
 
    example.jp. 3600 IN SOA ( ns1.example.com.
                              postmaster.example.com.
@@ -203,7 +240,7 @@ Internet-Draft              Abbreviated Title               January 2018
    example.jp. 3600 IN LB 1 JP jp1.example.com.
    example.jp. 3600 IN LB 3 JP jp2.example.com.
 
-   Incomming query with LS bit:
+   Incoming query with LS bit:
 
    query: qtype = example.jp. qtype=A, LS=1
 
@@ -219,14 +256,7 @@ Internet-Draft              Abbreviated Title               January 2018
        example.jp. 3600 IN NS ns1.example.com.
        example.jp. 3600 IN NS ns2.example.com.
 
-
-
-Sonoda                    Expires July 5, 2018                  [Page 4]
-
-Internet-Draft              Abbreviated Title               January 2018
-
-
-   Incomming query without LS bit (normal query):
+   Incoming query without LS bit (normal query):
 
    query: qtype = example.jp. qtype=A, LS=0
 
@@ -240,21 +270,33 @@ Internet-Draft              Abbreviated Title               January 2018
            example.jp. 3600 IN NS ns1.example.com.
            example.jp. 3600 IN NS ns2.example.com.
 
+
+
+
+
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 5]
+
+Internet-Draft              Abbreviated Title              February 2018
+
+
 6.  Full Service Resolver Behavior
 
-   When a full resulver sends a query of type A or AAAA with LS bit and
-   recives a response with a LB RRset in the answer section with LS bit,
-   Full resolver MUST re-resolv the either LB <target> of type "STYPE"
-   [RFC1034].  <target> be selected by <location> and <weight>.
+   When a full resolver sends a query of type A or AAAA with LS bit and
+   receives a response with a LB RRset in the answer section with LS
+   bit, Full resolver MUST re-resolv the either LB <target> of type
+   "STYPE" [RFC1034].  <target> be selected by <location> and <weight>.
 
 6.1.  Location selection
 
    Location selection needs full resolver or stub resolver location
-   information.  Full resolver location informations with priority value
+   information.  Full resolver location information with priority value
    SHOULD gets from config file.  Full resolver MUST setting '*'
    location with lowest priority.  Full resolver select location that
    match either LB RR <location> and highest priority resolver location.
-   if all LB RRs don't matche all resolver locations, resolver selects a
+   if all LB RRs don't match all resolver locations, resolver selects a
    location randomly.
 
 6.2.  Weight selection
@@ -264,9 +306,9 @@ Internet-Draft              Abbreviated Title               January 2018
 
 6.3.  Example
 
-   1.  Full resolver's location is configured "JP-13" "JP" "AS" "*".
+   1.  Full resolver location is configured "JP-13" "JP" "AS" "*".
 
-   2.  Stub resolver query comming:
+   2.  Stub resolver query coming:
 
        query: qtype = example.jp. qtype=A
 
@@ -274,15 +316,7 @@ Internet-Draft              Abbreviated Title               January 2018
 
        query: qtype = example.jp. qtype=A, LS=1
 
-
-
-
-Sonoda                    Expires July 5, 2018                  [Page 5]
-
-Internet-Draft              Abbreviated Title               January 2018
-
-
-   3.  If response include LB RRSets:
+   3.  If response include LB:
 
        query: qtype = example.jp. qtype=A
        response: LS=1
@@ -294,12 +328,20 @@ Internet-Draft              Abbreviated Title               January 2018
                example.jp. 3600 IN NS ns1.example.com.
                example.jp. 3600 IN NS ns2.example.com.
 
-   4. select LB RR that's location include resolver location:
+   4. select LB RR that's location include resolver location
+
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 6]
+
+Internet-Draft              Abbreviated Title              February 2018
+
 
                example.jp. 3600 IN LB 1 JP jp1.example.com.
                example.jp. 3600 IN LB 3 JP jp2.example.com.
 
-   5.  Select one <target> using <weight>:
+   5.  Select one LB RR using <weight>:
 
                example.jp. 3600 IN LB 3 JP jp2.example.com.
 
@@ -328,22 +370,12 @@ Internet-Draft              Abbreviated Title               January 2018
 
    7.  Stub resolver uses 192.0.2.2
 
-
-
-
-
-
-Sonoda                    Expires July 5, 2018                  [Page 6]
-
-Internet-Draft              Abbreviated Title               January 2018
-
-
 7.  IANA Considerations
 
    IANA is requested to assign a DNS RR data type value for the LB RR
-   type under the "Resource Record (RR) TYPEs" subregistry and a EDNS
+   type under the "Resource Record (RR) TYPEs" sub-registry and a EDNS
    Header Flag value for the LB Support Flag under the "EDNS Header
-   Flags (16 bits)" subregistry under the "Domain Name System (DNS)
+   Flags (16 bits)" sub-registry under the "Domain Name System (DNS)
    Parameters" registry.
 
 8.  Security Considerations
@@ -351,7 +383,23 @@ Internet-Draft              Abbreviated Title               January 2018
    Both authoritative server and resolvers that implement LB SHOUD
    carefully check for loops.
 
+
+
+
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 7]
+
+Internet-Draft              Abbreviated Title              February 2018
+
+
 9.  Normative References
+
+   [I-D.ietf-dnsop-aname]
+              Hunt, E., Dijk, P., and A. Eden, "Address-specific DNS
+              Name Redirection (ANAME)", draft-ietf-dnsop-aname-01 (work
+              in progress), January 2018.
 
    [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
               STD 13, RFC 1034, DOI 10.17487/RFC1034, November 1987,
@@ -371,7 +419,7 @@ Author's Address
    Manabu Sonoda (editor)
    Internet Initiative Japan Inc.
 
-   Email: manbabu-s@iij.ad.jp
+   Email: manabu-s@iij.ad.jp
 
 
 
@@ -389,4 +437,12 @@ Author's Address
 
 
 
-Sonoda                    Expires July 5, 2018                  [Page 7]
+
+
+
+
+
+
+
+
+Sonoda                   Expires August 10, 2018                [Page 8]
