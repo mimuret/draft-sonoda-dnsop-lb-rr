@@ -1,0 +1,24 @@
+$ORIGIN example.jp.
+$TTL 300
+@	IN	SOA	ns.example.jp. dns-master.example.jp. 1 3600 900 1814400 900
+@	IN	NS	ns1.example.jp.
+@	IN	NS	ns2.example.jp.
+	IN	A	10.0.0.1
+	IN	AAAA	2001:DB8:10::1
+	IN	LB	1 * all.example.jp.
+	IN	LB	3 JP jp1.example.jp.
+	IN	LB	1 JP jp2.example.jp.
+	IN	LB	1 JP-13 tokyo.example.jp.
+all	IN	A	10.0.0.1
+	IN	AAAA	2001:DB8:10::1
+jp1	IN	A	172.16.0.1
+	IN	AAAA	2001:DB8:172::1
+jp2	IN	A	172.16.0.2
+	IN	AAAA	2001:DB8:172::2
+tokyo	IN	A	192.168.0.1
+	IN	AAAA	2001:DB8:192::2
+ns1	IN	NS	192.168.0.1
+	IN	AAAA	2001:DB8::1
+ns2	IN	NS	192.168.0.2
+	IN	AAAA	2001:DB8::2
+*	IN	LB	1 * example.jp.

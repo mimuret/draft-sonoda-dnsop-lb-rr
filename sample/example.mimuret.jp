@@ -7,3 +7,4 @@ example.mimuret.jp.	IN LB 1 * example.mimuret.jp.
 example.mimuret.jp. IN LB 1 JP jp2.example.jp.
 example.mimuret.jp. IN LB 3 JP jp1.example.jp.
 example.mimuret.jp. IN LB 1 JP-13 example.tokyo.jp.
+*.example.mimuret.jp. IN LB 1 * example.mimuret.jp.
