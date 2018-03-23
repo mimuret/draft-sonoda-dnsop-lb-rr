@@ -246,7 +246,7 @@ response:  LS=0
       </section>
     </section>
     <section title='Implementation Status'>
-      <t>Proof of concept patches for NSD, KnotDNS and Drill that in github(https://github.com/mimuret/draft-sonoda-dnsop-lb-rr) </t>  
+      <t>Proof of concept patches for NSD, KnotDNS and Drill that in github(https://github.com/mimuret/draft-sonoda-dnsop-lb-rr) </t>
     </section>
 
     <section title="IANA Considerations">
