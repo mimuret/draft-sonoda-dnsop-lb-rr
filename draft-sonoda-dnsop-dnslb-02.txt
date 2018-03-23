@@ -4,8 +4,8 @@
 
 Domain Name System Operations                                Sonoda, Ed.
 Internet-Draft                            Internet Initiative Japan Inc.
-Intended status: Informational                         February 16, 2018
-Expires: August 20, 2018
+Intended status: Informational                            March 11, 2018
+Expires: September 12, 2018
 
 
                            DNS load balancing
@@ -40,7 +40,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 20, 2018.
+   This Internet-Draft will expire on September 12, 2018.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Sonoda                   Expires August 20, 2018                [Page 1]
+Sonoda                 Expires September 12, 2018               [Page 1]
 
-Internet-Draft              Abbreviated Title              February 2018
+Internet-Draft              Abbreviated Title                 March 2018
 
 
    publication of this document.  Please review these documents
@@ -109,9 +109,9 @@ Internet-Draft              Abbreviated Title              February 2018
 
 
 
-Sonoda                   Expires August 20, 2018                [Page 2]
+Sonoda                 Expires September 12, 2018               [Page 2]
 
-Internet-Draft              Abbreviated Title              February 2018
+Internet-Draft              Abbreviated Title                 March 2018
 
 
    3.  Authoritative Server responses LB RRset.
@@ -146,7 +146,7 @@ Internet-Draft              Abbreviated Title              February 2018
    <location> ::= "*" | <continental code> | <country code> |
    <subdivision code> | <asn code> | <private code>
 
-   <continental code> ::= "AF" | "AN" | "AS" | "EU" | "NA" | "OC" | "SA"
+   <region code> ::= "AF" | "NA" | "AS" | "EU" | "NA" | "OC" | "SA"
 
    <country code> ::= ISO 3166-1 alpha-2 Country code.
 
@@ -165,9 +165,9 @@ Internet-Draft              Abbreviated Title              February 2018
 
 
 
-Sonoda                   Expires August 20, 2018                [Page 3]
+Sonoda                 Expires September 12, 2018               [Page 3]
 
-Internet-Draft              Abbreviated Title              February 2018
+Internet-Draft              Abbreviated Title                 March 2018
 
 
    <let> ::= any one of the 26 alphabetic characters A through Z in
@@ -175,22 +175,14 @@ Internet-Draft              Abbreviated Title              February 2018
 
 3.2.  Record example
 
-   ; for any region.
-   example.jp. 3600 IN LB 1 * www.example.com.
-   ; for AP region.
-   example.jp. 3600 IN LB 1 AP ap.example.com.
-   ; for JP region, weight 1.
-   example.jp. 3600 IN LB 1 JP jp1.example.jp.
-   ; for JP region, weight 3.
-   example.jp. 3600 IN LB 3 JP jp2.example.jp.
-   ; for tokyo region. (JP-13 is tokyo region ISO 3166-2:JP)
-   example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp.
-   ; for AS65536
-   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.
-   ; for AS65536
-   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp.
-   ; private use
-   example.jp. 3600 IN LB 1 +BEER beer.example.jp.
+   example.jp. 3600 IN LB 1 * www.example.com. ; for any region
+   example.jp. 3600 IN LB 1 AS as.example.com. ; for ASIA region
+   example.jp. 3600 IN LB 1 JP jp1.example.jp. ; for JP region, weight 1
+   example.jp. 3600 IN LB 3 JP jp2.example.jp. ; for JP region, weight 3
+   example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. ; for tokyo region
+   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS65536
+   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
+   example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
 
 4.  The LB Support Flag
 
@@ -211,21 +203,6 @@ Internet-Draft              Abbreviated Title              February 2018
 
    Example zone data:
 
-
-
-
-
-
-
-
-
-
-
-Sonoda                   Expires August 20, 2018                [Page 4]
-
-Internet-Draft              Abbreviated Title              February 2018
-
-
    example.jp. 3600 IN SOA ( ns1.example.com.
                              postmaster.example.com.
                              1
@@ -241,6 +218,13 @@ Internet-Draft              Abbreviated Title              February 2018
    example.jp. 3600 IN LB 3 JP jp2.example.com.
 
    Incoming query with LS bit:
+
+
+
+Sonoda                 Expires September 12, 2018               [Page 4]
+
+Internet-Draft              Abbreviated Title                 March 2018
+
 
    query: qtype = example.jp. qtype=A, LS=1
 
@@ -270,18 +254,6 @@ Internet-Draft              Abbreviated Title              February 2018
            example.jp. 3600 IN NS ns1.example.com.
            example.jp. 3600 IN NS ns2.example.com.
 
-
-
-
-
-
-
-
-Sonoda                   Expires August 20, 2018                [Page 5]
-
-Internet-Draft              Abbreviated Title              February 2018
-
-
 6.  Full Service Resolver Behavior
 
    When a full resolver sends a query of type A or AAAA with LS bit and
@@ -298,6 +270,17 @@ Internet-Draft              Abbreviated Title              February 2018
    match either LB RR <location> and highest priority resolver location.
    if all LB RRs don't match all resolver locations, resolver selects a
    location randomly.
+
+
+
+
+
+
+
+Sonoda                 Expires September 12, 2018               [Page 5]
+
+Internet-Draft              Abbreviated Title                 March 2018
+
 
 6.2.  Weight selection
 
@@ -330,14 +313,6 @@ Internet-Draft              Abbreviated Title              February 2018
 
    4. select LB RR that's location include resolver location
 
-
-
-
-Sonoda                   Expires August 20, 2018                [Page 6]
-
-Internet-Draft              Abbreviated Title              February 2018
-
-
                example.jp. 3600 IN LB 1 JP jp1.example.com.
                example.jp. 3600 IN LB 3 JP jp2.example.com.
 
@@ -355,6 +330,14 @@ Internet-Draft              Abbreviated Title              February 2018
                example.com. 3600 IN NS ns1.example.com.
                example.com. 3600 IN NS ns2.example.com.
 
+
+
+
+Sonoda                 Expires September 12, 2018               [Page 6]
+
+Internet-Draft              Abbreviated Title                 March 2018
+
+
    6.  Make response message:
 
        query: qtype = example.jp. qtype=A, LS=1
@@ -370,7 +353,12 @@ Internet-Draft              Abbreviated Title              February 2018
 
    7.  Stub resolver uses 192.0.2.2
 
-7.  IANA Considerations
+7.  Implementation Status
+
+   Proof of concept patches for NSD, KnotDNS and Drill that in
+   github(https://github.com/mimuret/draft-sonoda-dnsop-lb-rr)
+
+8.  IANA Considerations
 
    IANA is requested to assign a DNS RR data type value for the LB RR
    type under the "Resource Record (RR) TYPEs" sub-registry and a EDNS
@@ -378,23 +366,12 @@ Internet-Draft              Abbreviated Title              February 2018
    Flags (16 bits)" sub-registry under the "Domain Name System (DNS)
    Parameters" registry.
 
-8.  Security Considerations
+9.  Security Considerations
 
    Both authoritative server and resolvers that implement LB SHOUD
    carefully check for loops.
 
-
-
-
-
-
-
-Sonoda                   Expires August 20, 2018                [Page 7]
-
-Internet-Draft              Abbreviated Title              February 2018
-
-
-9.  Normative References
+10.  Normative References
 
    [I-D.ietf-dnsop-aname]
               Hunt, E., Dijk, P., and A. Eden, "Address-specific DNS
@@ -408,6 +385,14 @@ Internet-Draft              Abbreviated Title              February 2018
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
               November 1987, <https://www.rfc-editor.org/info/rfc1035>.
+
+
+
+
+Sonoda                 Expires September 12, 2018               [Page 7]
+
+Internet-Draft              Abbreviated Title                 March 2018
+
 
    [RFC6891]  Damas, J., Graff, M., and P. Vixie, "Extension Mechanisms
               for DNS (EDNS(0))", STD 75, RFC 6891,
@@ -445,4 +430,19 @@ Author's Address
 
 
 
-Sonoda                   Expires August 20, 2018                [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Sonoda                 Expires September 12, 2018               [Page 8]

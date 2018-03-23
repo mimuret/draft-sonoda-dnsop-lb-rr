@@ -10,7 +10,7 @@
 <!ENTITY nbsp    "&#160;">
 ]>
 
-<rfc category="info" docName="draft-sonoda-dnsop-dnslb-01">
+<rfc category="info" docName="draft-sonoda-dnsop-dnslb-02">
   <front>
     <title abbrev="Abbreviated Title">DNS load balancing</title>
 
@@ -21,7 +21,7 @@
       </address>
     </author>
 
-    <date day="11" month="Mar" year="2018" />
+    <date day="23" month="Mar" year="2018" />
 
     <!-- Meta-data Declarations -->
 
@@ -99,15 +99,15 @@
       </section>
       <section title='Record example'>
       <figure><artwork><![CDATA[
-example.jp. 3600 IN LB 1 * www.example.com.           ; for any region.
-example.jp. 3600 IN LB 1 AS as.example.com.           ; for AS region.
-example.jp. 3600 IN LB 1 JP jp1.example.jp.           ; for JP region, weight 1.
-example.jp. 3600 IN LB 3 JP jp2.example.jp.           ; for JP region, weight 3.
-example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp.      ; for tokyo region. (JP-13 is tokyo region ISO 3166-2:JP)
-example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS65536
-example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
-example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
-      ]]></artwork></figure>
+   example.jp. 3600 IN LB 1 * www.example.com. ; for any region
+   example.jp. 3600 IN LB 1 AS as.example.com. ; for ASIA region
+   example.jp. 3600 IN LB 1 JP jp1.example.jp. ; for JP region, weight 1
+   example.jp. 3600 IN LB 3 JP jp2.example.jp. ; for JP region, weight 3
+   example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. ; for tokyo region 
+   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS65536
+   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
+   example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
+        ]]></artwork></figure>
       </section>
     </section>
 
@@ -246,7 +246,7 @@ response:  LS=0
       </section>
     </section>
     <section title='Implementation Status'>
-      Proof of concept patches for NSD, KnotDNS and Drill that in github(https://github.com/mimuret/draft-sonoda-dnsop-lb-rr) 
+      <t>Proof of concept patches for NSD, KnotDNS and Drill that in github(https://github.com/mimuret/draft-sonoda-dnsop-lb-rr) </t>  
     </section>
 
     <section title="IANA Considerations">
