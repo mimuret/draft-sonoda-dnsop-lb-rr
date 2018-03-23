@@ -7,3 +7,6 @@
 [submodule "knot-with-ls"]
 	path = knot-with-ls
 	url = https://github.com/mimuret/knot-with-ls
+[submodule "knot-resolver-with-ls"]
+	path = knot-resolver-with-ls
+	url = https://github.com/mimuret/knot-resolver-with-ls
