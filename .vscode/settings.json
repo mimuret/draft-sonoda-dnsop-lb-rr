@@ -25,5 +25,16 @@
     "typescriptreact",
     "xml",
     "yml"
+  ],
+  "cSpell.words": [
+    "aname",
+    "cname",
+    "dname",
+    "edns",
+    "qtype",
+    "r",
+    "resolv",
+    "rset",
+    "stype"
   ]
 }

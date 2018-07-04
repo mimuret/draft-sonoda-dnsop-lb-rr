@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This template is for creating an Internet Draft using xml2rfc,
+     which is available here: http://xml.resource.org. -->
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!ENTITY RFC1035 SYSTEM "https://xml2rfc.tools.ietf.org/public/rfc/bibxml/reference.RFC.1035.xml">
+
+<!ENTITY nbsp "&#160;">
+]>
+
+<rfc category="info" docName="draft-sonoda-dnsop-lb-01">
+  <front>
+    <title abbrev="Abbreviated Title">IP geolocation load balancing Resource Record</title>
+
+    <author fullname="Manabu Sonoda" role="editor" surname="Sonoda">
+      <organization>Internet Initiative Japan Inc.</organization>
+      <address>
+        <email>manabu-s@iij.ad.jp</email>
+      </address>
+    </author>
+
+    <date day="23" month="Mar" year="2018" />
+
+    <!-- Meta-data Declarations -->
+
+    <area>General</area>
+
+    <workgroup>Domain Name System Operations</workgroup>
+    <keyword>DNS</keyword>
+    <abstract>
+      <t> This document defines a new DNS load balance function that is able to transfer information in zone transfer and not need online signing.
+      DNS base load balance is popular technology. It provides weight base response and location base response.
+      It have become an indispensable part of traffic engineering.
+      However, DNS base load balance can't transfer load balance information in zone transfer and need online singing because it is not standardized.
+      This document defines a new DNS resource record called "LB".
+      LB RR provides the balancing information weight, location and target domain name.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <section title="Legacy DNS load balancing">
+        <t>Legacy DNS load balancing provides traffic engineering.It use special authoritative name server.
+        It response is one address record that is dynamic changes using network location and weight.
+        It's used for large traffic WEB site domain name that is important domain name. Important domain name should be secure.</t>
+
+        <t>But legacy DNS load balancing is not secure.
+        Because Legacy DNS load balancing can't send zone data by zone transfer.
+        It's mean very difficult to use multi service providers. That means weak for DDoS Attack.
+        If zone is signed, All name servers require private key for dynamic signing because response is dynamic changes. 
+        Distributing private key is not secure, It is increased risk of leakage private key.
+        </t>
+      </section>
+      <section title="New DNS load balancing">
+        <t>New DNS load balancing concept is that Authoritative name server uses "LB" RR to provide load balancing information
+          and Clients application uses "LB" RR to select target name.
+        </t>
+
+        <t>"LB" RR defines load balancing settings that is network location and weight and target domain name.
+          Network location is string that meaningful name of network. For example Country code (ex. JP),subdivision code(ex. US-CA) and Autonomous System Number (ex. AS65536).
+          Weight is ratio value to use select target name. Target name is pointer to address record. </t>
+
+        <t>"server.location" is special TXT record that is location information at full service resolver.
+          Application can use this value for location selection. </t>
+      </section>
+    </section>
+
+    <section title="The LB Resource Record">
+      <t>The LB RR has mnemonic LB. LB RR define load balancing information.</t>
+      <t>LB format below.</t>
+      <figure><artwork><![CDATA[
+      <owner> <ttl> <class> LB <weight> <location> <target>
+            ]]></artwork></figure>
+      <t>The format is not class-sensitive.  All fields are required.</t>
+      <t>&lt;weight&gt; field is a 2 octets, 1 or more natural number.</t>
+      <t>&lt;location&gt; field is a "&lt;character-string&gt;"  <xref target="RFC1035"/>.</t>
+      <t>&lt;target&gt; field is a "&lt;domain-name&gt;" <xref target="RFC1035"/>.</t>
+      <section title='Define location'>
+        <t>&lt;location&gt; ::= "*" | &lt;continental code&gt; | &lt;country code&gt; | &lt;subdivision code&gt; | &lt;asn code&gt; | &lt;private code&gt;</t>
+        <t>&lt;region code&gt; ::= "AF" | "NA" | "AS" | "EU" | "NA" | "OC" | "SA"</t>
+        <t>&lt;country code&gt; ::= ISO 3166-1 alpha-2 Country code.</t>
+        <t>&lt;subdivision code&gt; ::= ISO 3166-2 Codes for the representation of names of countries and their subdivisions.</t>
+        <t>&lt;asn code&gt; ::= "AS" &lt;asn&gt; [  ":" &lt;asn&gt;]</t>
+        <t>&lt;private code&gt; ::= "+" &lt;let&gt;</t>
+        <t>&lt;ans&gt; ::=  &lt;nonzero digit&gt; &lt;digit&gt;</t>
+        <t>&lt;nonzero digit&gt; ::= any one of the ten digits 1 through 9</t>
+        <t>&lt;digit&gt; ::= any one of the ten digits 0 through 9</t>
+        <t>&lt;let&gt; ::= any one of the 26 alphabetic characters A through Z in upper case or any one of the ten digits 0 through 9.</t>
+      </section>
+      <section title='Record example'>
+      <figure><artwork><![CDATA[
+   example.jp. 3600 IN LB 1 * www.example.com. ; for any region
+   example.jp. 3600 IN LB 1 AS as.example.com. ; for ASIA region
+   example.jp. 3600 IN LB 1 JP jp1.example.jp. ; for JP region, weight 1
+   example.jp. 3600 IN LB 3 JP jp2.example.jp. ; for JP region, weight 3
+   example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. ; for tokyo region 
+   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS65536
+   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
+   example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
+        ]]></artwork></figure>
+      </section>
+    </section>
+
+    <section title="Full service resolver's location">
+        <t>"server.location" is special TXT record that is location information at full service resolver.
+          Application can use this value for location selection.
+          
+        </t>
+      <section title='Record example'>
+      <figure><artwork><![CDATA[
+   server.localtion 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
+        ]]></artwork></figure>
+      </section>
+        </t>
+    </section>
+
+    <section title="IANA Considerations">
+      <t>IANA is requested to assign a DNS RR data type value for the LB RR type under 
+         the "Resource Record (RR) TYPEs" sub-registry
+         under the "Domain Name System (DNS) Parameters" registry.</t>
+    </section>
+
+  </middle>
+
+  <!--  *****BACK MATTER ***** -->
+
+  <back>
+    <references title='Normative References'>
+&RFC1035;
+    </references>
+  </back>
+</rfc>
+
