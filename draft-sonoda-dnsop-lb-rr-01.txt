@@ -84,17 +84,19 @@ Internet-Draft              Abbreviated Title                 March 2018
 1.2.  New DNS load balancing
 
    New DNS load balancing concept is that Authoritative name server uses
-   "LB" RR to provide load balancing and Clients application use "LB" RR
-   to select target name and using target name to connection.
+   "LB" RR to provide load balancing information and Clients application
+   uses "LB" RR to select target name.
 
    "LB" RR defines load balancing settings that is network location and
    weight and target domain name.  Network location is string that
    meaningful name of network.  For example Country code (ex.
    JP),subdivision code(ex.  US-CA) and Autonomous System Number (ex.
-   AS65536).  Full resolver use resolver configuration to select network
-   location and refine "LB" RRs.  Weight is integer value.  Full
-   resolver use weight ratio to select target name.  Target name is
-   pointer to address record.
+   AS65536).  Weight is ratio value to use select target name.  Target
+   name is pointer to address record.
+
+   "server.location" is special TXT record that is location information
+   at full service resolver.  Application can use this value for
+   location selection.
 
 2.  The LB Resource Record
 
@@ -104,8 +106,6 @@ Internet-Draft              Abbreviated Title                 March 2018
 
          <owner> <ttl> <class> LB <weight> <location> <target>
 
-   The format is not class-sensitive.  All fields are required.
-
 
 
 
@@ -114,12 +114,13 @@ Sonoda                 Expires September 24, 2018               [Page 2]
 Internet-Draft              Abbreviated Title                 March 2018
 
 
+   The format is not class-sensitive.  All fields are required.
+
    <weight> field is a 2 octets, 1 or more natural number.
 
    <location> field is a "<character-string>" [RFC1035].
 
-   <target> field is a "<domain-name>" [RFC1035].  It has A or AAAA RR
-   or CNAME RR or DNAME RR.
+   <target> field is a "<domain-name>" [RFC1035].
 
 2.1.  Define location
 
@@ -157,11 +158,10 @@ Internet-Draft              Abbreviated Title                 March 2018
    example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
    example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
 
-3.  IANA Considerations
 
-   IANA is requested to assign a DNS RR data type value for the LB RR
-   type under the "Resource Record (RR) TYPEs" sub-registry under the
-   "Domain Name System (DNS) Parameters" registry.
+
+
+
 
 
 
@@ -170,7 +170,23 @@ Sonoda                 Expires September 24, 2018               [Page 3]
 Internet-Draft              Abbreviated Title                 March 2018
 
 
-4.  Normative References
+3.  Full service resolver's location
+
+   "server.location" is special TXT record that is location information
+   at full service resolver.  Application can use this value for
+   location selection.
+
+3.1.  Record example
+
+      server.localtion 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
+
+4.  IANA Considerations
+
+   IANA is requested to assign a DNS RR data type value for the LB RR
+   type under the "Resource Record (RR) TYPEs" sub-registry under the
+   "Domain Name System (DNS) Parameters" registry.
+
+5.  Normative References
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
@@ -182,22 +198,6 @@ Author's Address
    Internet Initiative Japan Inc.
 
    Email: manabu-s@iij.ad.jp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

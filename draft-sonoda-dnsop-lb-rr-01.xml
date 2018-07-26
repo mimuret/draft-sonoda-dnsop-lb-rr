@@ -104,14 +104,12 @@
     <section title="Full service resolver's location">
         <t>"server.location" is special TXT record that is location information at full service resolver.
           Application can use this value for location selection.
-          
         </t>
       <section title='Record example'>
       <figure><artwork><![CDATA[
    server.localtion 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
         ]]></artwork></figure>
       </section>
-        </t>
     </section>
 
     <section title="IANA Considerations">
