@@ -7,9 +7,9 @@
 <!ENTITY nbsp "&#160;">
 ]>
 
-<rfc category="info" docName="draft-sonoda-dnsop-lb-01">
+<rfc category="info" docName="draft-sonoda-dnsop-lb-00">
   <front>
-    <title abbrev="Abbreviated Title">IP Location Load Balancing Resource Record</title>
+    <title abbrev="Abbreviated Title">IP geolocation load balancing Resource Record</title>
 
     <author fullname="Manabu Sonoda" role="editor" surname="Sonoda">
       <organization>Internet Initiative Japan Inc.</organization>
@@ -18,7 +18,7 @@
       </address>
     </author>
 
-    <date day="24" month="Mar" year="2019" />
+    <date day="23" month="Mar" year="2018" />
 
     <!-- Meta-data Declarations -->
 
@@ -39,20 +39,20 @@
 
   <middle>
     <section title="Introduction">
-      <section title="Current DNS load balancing">
-        <t>Current DNS load balancing provides traffic engineering.It use special authoritative name server.
+      <section title="Legacy DNS load balancing">
+        <t>Legacy DNS load balancing provides traffic engineering.It use special authoritative name server.
         It response is one address record that is dynamic changes using network location and weight.
         It's used for large traffic WEB site domain name that is important domain name. Important domain name should be secure.</t>
 
-        <t>But Current DNS load balancing is not secure.
-        Because Current DNS load balancing can't send zone data by zone transfer.
+        <t>But legacy DNS load balancing is not secure.
+        Because Legacy DNS load balancing can't send zone data by zone transfer.
         It's mean very difficult to use multi service providers. That means weak for DDoS Attack.
         If zone is signed, All name servers require private key for dynamic signing because response is dynamic changes. 
         Distributing private key is not secure, It is increased risk of leakage private key.
         </t>
       </section>
-      <section title="Propose new DNS load balancing">
-        <t>Propose new DNS load balancing concept is that Authoritative name server uses "LB" RR to provide load balancing information
+      <section title="New DNS load balancing">
+        <t>New DNS load balancing concept is that Authoritative name server uses "LB" RR to provide load balancing information
           and Clients application uses "LB" RR to select target name.
         </t>
 
@@ -60,7 +60,7 @@
           Network location is string that meaningful name of network. For example Country code (ex. JP),subdivision code(ex. US-CA) and Autonomous System Number (ex. AS65536).
           Weight is ratio value to use select target name. Target name is pointer to address record. </t>
 
-        <t>"location.server" is special TXT record that is location information at full service resolver.
+        <t>"server.location" is special TXT record that is location information at full service resolver.
           Application can use this value for location selection. </t>
       </section>
     </section>
@@ -94,21 +94,20 @@
    example.jp. 3600 IN LB 1 JP jp1.example.jp. ; for JP region, weight 1
    example.jp. 3600 IN LB 3 JP jp2.example.jp. ; for JP region, weight 3
    example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. ; for tokyo region 
-   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS2496
-   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS2496
+   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS65536
+   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
    example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
         ]]></artwork></figure>
       </section>
     </section>
 
     <section title="Full service resolver's location">
-        <t>"location.server" is special TXT record that is locations at full service resolver.
-          Locations in order of priority location that resolver administrator like it.
-          Apiplcation can use it for selecting location.
+        <t>"server.location" is special TXT record that is location information at full service resolver.
+          Application can use this value for location selection.
         </t>
       <section title='Record example'>
       <figure><artwork><![CDATA[
-   location.server 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
+   server.localtion 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
         ]]></artwork></figure>
       </section>
     </section>

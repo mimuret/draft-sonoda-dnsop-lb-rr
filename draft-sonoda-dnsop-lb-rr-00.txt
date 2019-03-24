@@ -4,12 +4,12 @@
 
 Domain Name System Operations                                Sonoda, Ed.
 Internet-Draft                            Internet Initiative Japan Inc.
-Intended status: Informational                              Mar 24, 2019
-Expires: September 25, 2019
+Intended status: Informational                              Mar 23, 2018
+Expires: September 24, 2018
 
 
-               IP Location Load Balancing Resource Record
-                        draft-sonoda-dnsop-lb-01
+             IP geolocation load balancing Resource Record
+                        draft-sonoda-dnsop-lb-00
 
 Abstract
 
@@ -38,11 +38,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 25, 2019.
+   This Internet-Draft will expire on September 24, 2018.
 
 Copyright Notice
 
-   Copyright (c) 2019 IETF Trust and the persons identified as the
+   Copyright (c) 2018 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Sonoda                 Expires September 25, 2019               [Page 1]
+Sonoda                 Expires September 24, 2018               [Page 1]
 
-Internet-Draft              Abbreviated Title                   Mar 2019
+Internet-Draft              Abbreviated Title                   Mar 2018
 
 
    to this document.  Code Components extracted from this document must
@@ -65,27 +65,27 @@ Internet-Draft              Abbreviated Title                   Mar 2019
 
 1.  Introduction
 
-1.1.  Current DNS load balancing
+1.1.  Legacy DNS load balancing
 
-   Current DNS load balancing provides traffic engineering.It use
-   special authoritative name server.  It response is one address record
-   that is dynamic changes using network location and weight.  It's used
-   for large traffic WEB site domain name that is important domain name.
+   Legacy DNS load balancing provides traffic engineering.It use special
+   authoritative name server.  It response is one address record that is
+   dynamic changes using network location and weight.  It's used for
+   large traffic WEB site domain name that is important domain name.
    Important domain name should be secure.
 
-   But Current DNS load balancing is not secure.  Because Current DNS
-   load balancing can't send zone data by zone transfer.  It's mean very
+   But legacy DNS load balancing is not secure.  Because Legacy DNS load
+   balancing can't send zone data by zone transfer.  It's mean very
    difficult to use multi service providers.  That means weak for DDoS
    Attack.  If zone is signed, All name servers require private key for
    dynamic signing because response is dynamic changes.  Distributing
    private key is not secure, It is increased risk of leakage private
    key.
 
-1.2.  Propose new DNS load balancing
+1.2.  New DNS load balancing
 
-   Propose new DNS load balancing concept is that Authoritative name
-   server uses "LB" RR to provide load balancing information and Clients
-   application uses "LB" RR to select target name.
+   New DNS load balancing concept is that Authoritative name server uses
+   "LB" RR to provide load balancing information and Clients application
+   uses "LB" RR to select target name.
 
    "LB" RR defines load balancing settings that is network location and
    weight and target domain name.  Network location is string that
@@ -94,7 +94,7 @@ Internet-Draft              Abbreviated Title                   Mar 2019
    AS65536).  Weight is ratio value to use select target name.  Target
    name is pointer to address record.
 
-   "location.server" is special TXT record that is location information
+   "server.location" is special TXT record that is location information
    at full service resolver.  Application can use this value for
    location selection.
 
@@ -109,9 +109,9 @@ Internet-Draft              Abbreviated Title                   Mar 2019
 
 
 
-Sonoda                 Expires September 25, 2019               [Page 2]
+Sonoda                 Expires September 24, 2018               [Page 2]
 
-Internet-Draft              Abbreviated Title                   Mar 2019
+Internet-Draft              Abbreviated Title                   Mar 2018
 
 
    The format is not class-sensitive.  All fields are required.
@@ -154,8 +154,8 @@ Internet-Draft              Abbreviated Title                   Mar 2019
    example.jp. 3600 IN LB 1 JP jp1.example.jp. ; for JP region, weight 1
    example.jp. 3600 IN LB 3 JP jp2.example.jp. ; for JP region, weight 3
    example.jp. 3600 IN LB 1 JP-13 tokyo.example.jp. ; for tokyo region
-   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS2496
-   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS2496
+   example.jp. 3600 IN LB 1 AS2496 as65536.example.jp.   ; for AS65536
+   example.jp. 3600 IN LB 1 AS2496:1 as65536.example.jp. ; for AS65536
    example.jp. 3600 IN LB 1 +BEER beer.example.jp.       ; private use
 
 
@@ -165,21 +165,20 @@ Internet-Draft              Abbreviated Title                   Mar 2019
 
 
 
-Sonoda                 Expires September 25, 2019               [Page 3]
+Sonoda                 Expires September 24, 2018               [Page 3]
 
-Internet-Draft              Abbreviated Title                   Mar 2019
+Internet-Draft              Abbreviated Title                   Mar 2018
 
 
 3.  Full service resolver's location
 
-   "location.server" is special TXT record that is locations at full
-   service resolver.  Locations in order of priority location that
-   resolver administrator like it.  Apiplcation can use it for selecting
-   location.
+   "server.location" is special TXT record that is location information
+   at full service resolver.  Application can use this value for
+   location selection.
 
 3.1.  Record example
 
-      location.server 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
+      server.localtion 0 CH TXT "AS2479" "JP-13" "JP" "AS" "*"
 
 4.  IANA Considerations
 
@@ -221,4 +220,5 @@ Author's Address
 
 
 
-Sonoda                 Expires September 25, 2019               [Page 4]
+
+Sonoda                 Expires September 24, 2018               [Page 4]
